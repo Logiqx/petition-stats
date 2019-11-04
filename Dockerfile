@@ -8,7 +8,7 @@ FROM jupyter/base-notebook:${NOTEBOOK_VERSION} AS builder
 
 # Environment variables
 ENV NB_USER=jovyan
-ENV PROJDIR=/home/${NB_USER}/work/petitition-stats
+ENV PROJDIR=/home/${NB_USER}/work/petition-stats
 
 # Convert Jupter notebooks to regular Python scripts
 COPY --chown=jovyan:users python/*.ipynb ${PROJDIR}/python/
@@ -21,7 +21,7 @@ FROM python:${PYTHON_VERSION}-alpine${ALPINE_VERSION}
 
 # Environment variables
 ENV NB_USER=jovyan
-ENV PROJDIR=/home/${NB_USER}/work/petitition-stats
+ENV PROJDIR=/home/${NB_USER}/work/petition-stats
 
 # Create the notebook user and project structure
 RUN addgroup -g 1000 -S ${NB_USER} && \
