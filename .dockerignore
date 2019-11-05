@@ -1,6 +1,5 @@
 .git
 data
-docker
+docs
 README.md
-reports
 python/__pycache__
