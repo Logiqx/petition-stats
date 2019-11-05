@@ -33,7 +33,7 @@ COPY --from=builder --chown=jovyan:jovyan ${PROJDIR}/ ${PROJDIR}/
 
 # Create data and docs volumes
 RUN cd ${PROJDIR} && \
-    mkdir data reports
+    mkdir data docs
 
 # Define the command / entrypoint
 CMD ["python3"]
