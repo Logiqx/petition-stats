@@ -32,8 +32,16 @@ RUN groupadd -g ${PY_GID} ${PY_GROUP} && \
     mkdir -p /home/${PY_USER}/work && \
     chown ${PY_USER} /home/${PY_USER}/work
 
+# Install Tini
+RUN apt-get update && apt-get install -y --no-install-recommends tini=0.18.* \
+    && rm -rf /var/lib/apt/lists/*
+
 # Copy project files from the builder
 USER ${PY_USER}
 WORKDIR /home/${PY_USER}/work/petition-stats
 COPY --from=builder --chown=jovyan:jovyan /home/jovyan/work/petition-stats/ ./
 RUN mkdir data docs
+
+# Wait for CMD to exit, reap zombies and perform signal forwarding
+ENTRYPOINT ["/usr/bin/tini", "--"]
+CMD ["python"]
