@@ -1,0 +1,73 @@
+def runPyScript(pyScript) {
+    env.PROJECT_ROOT = "${USER_HOME}/work/${IMAGE_NAME}"
+    sh """docker run --rm -w ${PROJECT_ROOT}/python ${IMAGE_NAME}:${IMAGE_TAG} ./""" + pyScript
+}
+
+void setBuildStatus(String message, String state) {
+    step([
+        $class: "GitHubCommitStatusSetter",
+        reposSource: [$class: "ManuallyEnteredRepositorySource", url: "${GIT_REPO}"],
+        contextSource: [$class: "ManuallyEnteredCommitContextSource", context: "ci/jenkins"],
+        errorHandlers: [[$class: "ChangingBuildStatusErrorHandler", result: "UNSTABLE"]],
+        statusResultSource: [$class: "ConditionalStatusResultSource",
+            results: [[$class: "AnyBuildResult", message: message, state: state]]]
+    ])
+}
+
+pipeline {
+    agent any
+    triggers {
+        githubPush()
+    }
+    environment {
+        GIT_REPO = 'https://github.com/Logiqx/petition-stats.git'
+        IMAGE_NAME = "petition-stats"
+        USER_HOME = '/home/jovyan'
+    }
+    stages {
+        stage('Git Clone') {
+            steps {
+                git url: "${GIT_REPO}"
+            }
+        }
+        stage('Determine Tag') {
+            environment {
+                IMAGE_TAG = sh(script: 'git rev-parse --short=12 HEAD',
+                               returnStdout: true).trim()
+            }
+            stages {
+                stage('Docker Build') {
+                    steps {
+                        sh "docker build . -t ${IMAGE_NAME}:${IMAGE_TAG}"
+                    }
+                }
+                stage('Refresh Reports') {
+                    steps {
+                        runPyScript('Petition_Reports.py')
+                    }
+                }
+                stage('Docker Tag') {
+                    steps {
+                        sh "docker tag $IMAGE_NAME:${IMAGE_TAG} $IMAGE_NAME:latest"
+                    }
+                }
+            }
+        }
+    }
+    post {
+        success {
+            setBuildStatus("Build succeeded", "SUCCESS")
+        }
+        failure {
+            setBuildStatus("Build failed", "FAILURE")
+            emailext(
+                to: "${EMAIL_RECIPIENTS}",
+                subject: "Failed Build: ${currentBuild.fullDisplayName}.",
+                body: """<p>FAILURE: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'</p>
+                         <p>See attachment for console output or visit this
+                            <a href=\"${env.BUILD_URL}\">link</a>.</p>""",
+                attachLog: true
+            )
+        }
+    }
+}
