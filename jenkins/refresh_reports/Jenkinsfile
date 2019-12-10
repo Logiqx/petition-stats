@@ -9,7 +9,7 @@ def runPyScript(pyScript) {
 pipeline {
     agent any
     triggers {
-        cron('0 * * * *')
+        cron('H * * * *')
         upstream(upstreamProjects: "petition-stats-docker-build",
                  threshold: hudson.model.Result.SUCCESS)
     }
