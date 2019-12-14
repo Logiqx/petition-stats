@@ -14,10 +14,10 @@ pipeline {
                  threshold: hudson.model.Result.SUCCESS)
     }
     options {
-        lock resource: "Petition"
+        lock resource: 'Petition'
     }
     environment {
-        IMAGE_NAME = "petition-stats"
+        IMAGE_NAME = 'petition-stats'
         USER_HOME = '/home/jovyan'
     }
     stages {
