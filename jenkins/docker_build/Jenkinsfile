@@ -1,6 +1,6 @@
 def runPyScript(pyScript) {
     env.PROJECT_ROOT = "${USER_HOME}/work/${IMAGE_NAME}"
-    sh """docker run --rm -w ${PROJECT_ROOT}/python ${IMAGE_NAME}:${IMAGE_TAG} ./""" + pyScript
+    sh """docker run --rm ${IMAGE_NAME}:${IMAGE_TAG} python/""" + pyScript
 }
 
 void setBuildStatus(String message, String state) {
@@ -28,6 +28,11 @@ pipeline {
         stage('Git Clone') {
             steps {
                 git url: "${GIT_REPO}"
+            }
+        }
+        stage('Git Status') {
+            steps {
+                setBuildStatus("Build started", "PENDING")
             }
         }
         stage('Determine Tag') {
