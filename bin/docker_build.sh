@@ -1,8 +1,15 @@
+# Project Env
 . $(dirname $0)/env.sh
 
-set -e
+# Determine Tag
+IMAGE_NAME=$PROJ_NAME
+IMAGE_TAG=$(git rev-parse --short=12 HEAD)
 
-cd $PROJ_DIR
+# Docker Build
+DOCKER_BUILDKIT=1 docker build . -t $IMAGE_NAME:$IMAGE_TAG
 
-DOCKER_BUILDKIT=1 docker build . -t $PROJ_NAME:$(git rev-parse --short=12 HEAD)
-docker tag $PROJ_NAME:$(git rev-parse --short=12 HEAD) $PROJ_NAME:latest
+# Refresh Reports
+run_py_script Petition_Reports.py
+
+# Docker Tag
+docker tag $IMAGE_NAME:$IMAGE_TAG $IMAGE_NAME:latest
